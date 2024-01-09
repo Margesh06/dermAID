@@ -1,0 +1,191 @@
+
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2e3192, #3ea1f1);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Form label style */
+        .font-weight-bold {
+            color: #333;
+        }
+
+        /* Custom file input label */
+        .custom-file-label {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #333;
+        }
+
+        /* Upload button style */
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 24px;
+            font-size: 18px;
+            transition: background-color 0.3s ease-in-out;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Fill in your details and upload a file</h1>
+        <div class="upload-form mt-4">
+            <form action="/upload" method="POST" enctype="multipart/form-data" id="myForm">
+                <div class="form-group">
+                    <label for="name">Enter your name:</label>
+                    <input id="name" name="name" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="age">Enter your age:</label>
+                    <input id="age" name="age" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="city">Enter your city:</label>
+                    <input id="city" name="city" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="number">Enter your mobile number:</label>
+                    <input id="number" name="number" type="text" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="font-weight-bold">Choose an option:</label>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="fileOption" name="photoOption" class="custom-control-input" checked>
+                        <label class="custom-control-label" for="fileOption">Choose a File</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="cameraOption" name="photoOption" class="custom-control-input">
+                        <label class="custom-control-label" for="cameraOption">Capture Photo</label>
+                    </div>
+                    <br>
+                
+                    <!-- File input section -->
+                    <div id="fileInputSection">
+                        <label class="font-weight-bold">Choose a file:</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="file" name="file" onchange="updateLabel()">
+                            <label class="custom-file-label" for="file" id="file-label">Select a file</label>
+                        </div>
+                    </div>
+                
+                    <!-- Camera capture section -->
+                    <div id="cameraCaptureSection" style="display: none;">
+                        <video id="camera" width="540" height="480" autoplay></video>
+                        <button id="capture">Capture Photo</button>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary" id="uploadBtn">Upload</button>
+            </form>
+            
+            
+                <p id="loading" class="hidden">Loading...</p>
+            
+            <div id="output" class="mt-4 hidden">
+                <!-- Output content will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        const video = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const photo = document.getElementById('photo');
+ navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.error('Error accessing camera:', err);
+            });
+
+
+            const fileOption = document.getElementById('fileOption');
+const cameraOption = document.getElementById('cameraOption');
+const fileInputSection = document.getElementById('fileInputSection');
+const cameraCaptureSection = document.getElementById('cameraCaptureSection');
+
+fileOption.addEventListener('change', () => {
+    fileInputSection.style.display = 'block';
+    cameraCaptureSection.style.display = 'none';
+});
+
+cameraOption.addEventListener('change', () => {
+    fileInputSection.style.display = 'none';
+    cameraCaptureSection.style.display = 'block';
+});
+
+
+        function updateLabel() {
+            var fileInput = document.getElementById('file');
+            var fileLabel = document.getElementById('file-label');
+            fileLabel.innerText = fileInput.files[0].name;
+        }
+        
+        document.getElementById("uploadBtn").addEventListener("click", function () {
+
+            document.getElementById("loading").classList.remove("hidden");
+            // Disable the "Upload" button to prevent multiple submissions
+            document.getElementById("uploadBtn").setAttribute("disabled", "true");
+
+            // Submit the form
+            document.getElementById("myForm").submit();
+        });
+
+
+
+        
+    </script>
+</body>
+</html>
+
